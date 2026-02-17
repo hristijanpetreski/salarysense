@@ -5,21 +5,31 @@
     "dev": "vinxi dev",
     "build": "vinxi build",
     "start": "vinxi start",
-    "version": "vinxi version"
+    "version": "vinxi version",
+    "test": "vitest run",
+    "test-watch": "vitest",
+    "test-ui": "vitest --ui"
   },
   "dependencies": {
     "@solidjs/meta": "^0.29.4",
-    "@solidjs/router": "^0.15.0",
-    "@solidjs/start": "^1.1.0",
-    "solid-js": "^1.9.5",
-    "vinxi": "^0.5.7"
+    "@solidjs/router": "^0.15.4",
+    "@solidjs/start": "^1.2.1",
+    "solid-js": "^1.9.11",
+    "vinxi": "^0.5.11"
   },
   "engines": {
     "node": ">=22"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.1",
+    "@biomejs/biome": "2.4.2",
+    "@solidjs/testing-library": "^0.8.10",
     "@tailwindcss/vite": "^4.1.18",
-    "tailwindcss": "^4.1.18"
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitest/ui": "^4.0.18",
+    "jsdom": "^28.1.0",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }
