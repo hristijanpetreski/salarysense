@@ -1,4 +1,20 @@
-import type { RATES } from "./constants";
+import { RATES } from "./constants";
+
+type Rates = {
+    contributions: {
+        pensionAndDisability: number;
+        healthInsurance: number;
+        additionalHealthInsurance: number;
+        unemploymentInsurance: number;
+    };
+    tax: number;
+    allowance: number;
+};
+
+export function roundMoney(value: number, decimals: number = 0): number {
+    const factor = 10 ** decimals;
+    return Math.round((value + Number.EPSILON) * factor) / factor;
+}
 
 /**
  * Returns the total employee contribution rate by summing the individual
@@ -8,7 +24,7 @@ import type { RATES } from "./constants";
  * other calculations to derive gross/net conversions and thresholds. The
  * returned value is a decimal (no rounding is performed).
  *
- * @param {typeof RATES} rates - Rates object containing a `contributions` property with:
+ * @param {Rates} rates - Rates object containing a `contributions` property with:
  *   - pensionAndDisability: number
  *   - healthInsurance: number
  *   - unemploymentInsurance: number
@@ -16,27 +32,27 @@ import type { RATES } from "./constants";
  * @returns {number} Sum of the employee contribution rates (decimal). For example, 0.25 represents 25%.
  */
 
-export function getTotalContributionRate(rates: typeof RATES): number {
-  const {
-    pensionAndDisability,
-    healthInsurance,
-    unemploymentInsurance,
-    additionalHealthInsurance,
-  } = rates.contributions;
-  return (
-    pensionAndDisability +
-    healthInsurance +
-    unemploymentInsurance +
-    additionalHealthInsurance
-  );
+export function getTotalContributionRate(rates: Rates): number {
+    const {
+        pensionAndDisability,
+        healthInsurance,
+        unemploymentInsurance,
+        additionalHealthInsurance,
+    } = rates.contributions;
+    return (
+        pensionAndDisability +
+        healthInsurance +
+        unemploymentInsurance +
+        additionalHealthInsurance
+    );
 }
 
 type ContributionsBreakdown = {
-  pensionAndDisability: number;
-  healthInsurance: number;
-  additionalHealthInsurance: number;
-  unemploymentInsurance: number;
-  total: number;
+    pensionAndDisability: number;
+    healthInsurance: number;
+    additionalHealthInsurance: number;
+    unemploymentInsurance: number;
+    total: number;
 };
 
 /**
@@ -50,7 +66,7 @@ type ContributionsBreakdown = {
  * to be provided as decimals (for example, 0.1 for 10%).
  *
  * @param {number} gross - Gross salary amount used to compute contributions.
- * @param {typeof RATES} rates - Rates object containing the contribution rates:
+ * @param {Rates} rates - Rates object containing the contribution rates:
  *   - rates.contributions.pensionAndDisability: pension contribution rate (decimal).
  *   - rates.contributions.healthInsurance contribution rate (decimal).
  *   - rates.contributions.unemploymentInsurance: unemployment contribution rate (decimal).
@@ -63,34 +79,34 @@ type ContributionsBreakdown = {
  *   - total: number - sum of all contribution amounts
  */
 export function calculateContributions(
-  gross: number,
-  rates: typeof RATES,
+    gross: number,
+    rates: Rates,
 ): ContributionsBreakdown {
-  const {
-    pensionAndDisability,
-    healthInsurance,
-    unemploymentInsurance,
-    additionalHealthInsurance,
-  } = rates.contributions;
+    const {
+        pensionAndDisability,
+        healthInsurance,
+        unemploymentInsurance,
+        additionalHealthInsurance,
+    } = rates.contributions;
 
-  const total =
-    gross * pensionAndDisability +
-    gross * healthInsurance +
-    gross * unemploymentInsurance +
-    gross * additionalHealthInsurance;
+    const total =
+        gross * pensionAndDisability +
+        gross * healthInsurance +
+        gross * unemploymentInsurance +
+        gross * additionalHealthInsurance;
 
-  return {
-    pensionAndDisability: gross * pensionAndDisability,
-    healthInsurance: gross * healthInsurance,
-    additionalHealthInsurance: gross * additionalHealthInsurance,
-    unemploymentInsurance: gross * unemploymentInsurance,
-    total,
-  };
+    return {
+        pensionAndDisability: gross * pensionAndDisability,
+        healthInsurance: gross * healthInsurance,
+        additionalHealthInsurance: gross * additionalHealthInsurance,
+        unemploymentInsurance: gross * unemploymentInsurance,
+        total,
+    };
 }
 
 export type TaxBreakdown = {
-  taxableBase: number;
-  incomeTax: number;
+    taxableBase: number;
+    incomeTax: number;
 };
 
 /**
@@ -101,7 +117,7 @@ export type TaxBreakdown = {
  * It then applies the flat tax rate to the taxable base to compute the income tax.
  *
  * @param {number} grossAfterContributions - Gross salary remaining after employee contributions have been deducted.
- * @param {typeof RATES} rates - Rates object containing the tax rate and allowance:
+ * @param {Rates} rates - Rates object containing the tax rate and allowance:
  *   - rates.tax: flat income tax rate (e.g. 0.2 for 20%)
  *   - rates.allowance: tax-free allowance amount
  * @returns {TaxBreakdown} Object containing:
@@ -109,26 +125,26 @@ export type TaxBreakdown = {
  *   - incomeTax: number - income tax computed as taxableBase * tax
  */
 export function calculateTax(
-  grossAfterContributions: number,
-  rates: typeof RATES,
+    grossAfterContributions: number,
+    rates: Rates,
 ): TaxBreakdown {
-  const { tax, allowance } = rates;
+    const { tax, allowance } = rates;
 
-  const taxableBase = Math.max(0, grossAfterContributions - allowance);
+    const taxableBase = Math.max(0, grossAfterContributions - allowance);
 
-  const incomeTax = taxableBase * tax;
+    const incomeTax = taxableBase * tax;
 
-  return {
-    taxableBase,
-    incomeTax,
-  };
+    return {
+        taxableBase,
+        incomeTax,
+    };
 }
 
 export type SalaryBreakdown = {
-  gross: number;
-  net: number;
-  contributions: ContributionsBreakdown;
-  tax: TaxBreakdown;
+    gross: number;
+    net: number;
+    contributions: ContributionsBreakdown;
+    tax: TaxBreakdown;
 };
 
 /**
@@ -141,24 +157,24 @@ export type SalaryBreakdown = {
  * - Applies flat income tax to the taxable base and derives net = grossAfterContributions - incomeTax.
  *
  * @param {number} gross - Gross salary amount (before contributions and tax).
- * @param {typeof RATES} rates - Rates object containing contributions, tax and allowance.
+ * @param {Rates} rates - Rates object containing contributions, tax and allowance.
  * @returns {SalaryBreakdown} Salary breakdown: { gross, net, contributions, tax }.
  */
 export function calculateNetSalary(
-  gross: number,
-  rates: typeof RATES,
+    gross: number,
+    rates: Rates,
 ): SalaryBreakdown {
-  const contributions = calculateContributions(gross, rates);
-  const grossAfterContributions = gross - contributions.total;
-  const tax = calculateTax(grossAfterContributions, rates);
-  const net = grossAfterContributions - tax.incomeTax;
+    const contributions = calculateContributions(gross, rates);
+    const grossAfterContributions = gross - contributions.total;
+    const tax = calculateTax(grossAfterContributions, rates);
+    const net = grossAfterContributions - tax.incomeTax;
 
-  return {
-    gross,
-    net,
-    contributions,
-    tax,
-  };
+    return {
+        gross,
+        net,
+        contributions,
+        tax,
+    };
 }
 
 /**
@@ -182,38 +198,38 @@ export function calculateNetSalary(
  * { gross, net, contributions, tax }.
  *
  * @param {number} net - Target net salary (after contributions and income tax).
- * @param {typeof RATES} rates - Rates object containing contributions, tax and allowance.
+ * @param {Rates} rates - Rates object containing contributions, tax and allowance.
  * @returns {SalaryBreakdown} Salary breakdown for the computed gross amount.
  */
 
 export function calculateGrossSalary(
-  net: number,
-  rates: typeof RATES,
+    net: number,
+    rates: Rates,
 ): SalaryBreakdown {
-  const contributionRate = getTotalContributionRate(rates);
+    const contributionRate = getTotalContributionRate(rates);
 
-  const { tax, allowance } = rates;
+    const { tax, allowance } = rates;
 
-  const multiplier = (1 - contributionRate) * (1 - tax);
-  const constant = tax * allowance;
-  const thresholdGross = allowance / (1 - contributionRate);
-  const thresholdNet = (1 - contributionRate) * thresholdGross;
+    const multiplier = (1 - contributionRate) * (1 - tax);
+    const constant = tax * allowance;
+    const thresholdGross = allowance / (1 - contributionRate);
+    const thresholdNet = (1 - contributionRate) * thresholdGross;
 
-  let gross: number;
+    let gross: number;
 
-  if (net <= thresholdNet) {
-    // No tax zone
-    gross = net / (1 - contributionRate);
-  } else {
-    gross = (net - constant) / multiplier;
-  }
+    if (net <= thresholdNet) {
+        // No tax zone
+        gross = net / (1 - contributionRate);
+    } else {
+        gross = (net - constant) / multiplier;
+    }
 
-  return calculateNetSalary(gross, rates);
+    return calculateNetSalary(gross, rates);
 }
 
 type SalaryInput =
-  | { type: "gross"; amount: number }
-  | { type: "net"; amount: number };
+    | { type: "gross"; amount: number }
+    | { type: "net"; amount: number };
 
 /**
  * Calculates a salary conversion and breakdown.
@@ -227,12 +243,46 @@ type SalaryInput =
  * @returns An object containing gross, net, contributions and tax breakdown for the computed salary.
  */
 export function calculateSalary(
-  input: SalaryInput,
-  rates: typeof RATES,
+    input: SalaryInput,
+    rates: Rates = RATES,
 ): SalaryBreakdown {
-  if (input.type === "gross") {
-    return calculateNetSalary(input.amount, rates);
-  }
+    if (input.type === "gross") {
+        return calculateNetSalary(input.amount, rates);
+    }
 
-  return calculateGrossSalary(input.amount, rates);
+    return calculateGrossSalary(input.amount, rates);
+}
+
+export function finalizeSalary(salary: SalaryBreakdown): SalaryBreakdown {
+    const contributions = {
+        pensionAndDisability: roundMoney(
+            salary.contributions.pensionAndDisability,
+        ),
+        healthInsurance: roundMoney(salary.contributions.healthInsurance),
+        unemploymentInsurance: roundMoney(
+            salary.contributions.unemploymentInsurance,
+        ),
+        additionalHealthInsurance: roundMoney(
+            salary.contributions.additionalHealthInsurance,
+        ),
+    };
+
+    const total =
+        contributions.pensionAndDisability +
+        contributions.healthInsurance +
+        contributions.unemploymentInsurance +
+        contributions.additionalHealthInsurance;
+
+    return {
+        gross: roundMoney(salary.gross),
+        net: roundMoney(salary.net),
+        contributions: {
+            ...contributions,
+            total,
+        },
+        tax: {
+            incomeTax: roundMoney(salary.tax.incomeTax),
+            taxableBase: roundMoney(salary.tax.taxableBase),
+        },
+    };
 }
