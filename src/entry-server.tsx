@@ -2,22 +2,28 @@
 import { createHandler, StartServer } from "@solidjs/start/server";
 
 export default createHandler(() => (
-  <StartServer
-    document={({ assets, children, scripts }) => (
-      <html lang="en" class="h-full">
-        <head>
-          <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <link rel="icon" href="/favicon.ico" />
-          {assets}
-        </head>
-        <body class="h-full">
-          <div id="app" class="h-full">
-            {children}
-          </div>
-          {scripts}
-        </body>
-      </html>
-    )}
-  />
+    <StartServer
+        document={({ assets, children, scripts }) => (
+            <html lang="en">
+                <head>
+                    <meta charset="utf-8" />
+                    <meta
+                        name="viewport"
+                        content="width=device-width, initial-scale=1"
+                    />
+                    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+                    <link rel="alternate icon" href="/favicon.ico" />
+                    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+                    <link rel="manifest" href="/manifest.json" />
+                    {assets}
+                </head>
+                <body>
+                    <div id="app" class="h-full">
+                        {children}
+                    </div>
+                    {scripts}
+                </body>
+            </html>
+        )}
+    />
 ));

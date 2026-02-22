@@ -1,0 +1,21 @@
+{
+    "name": "SalarySense",
+    "description": "Full salary calculation with tax and social contribution insight.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f4fbfa",
+    "theme_color": "#006a6a",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
