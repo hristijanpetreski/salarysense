@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { RATES } from "./constants";
+import { getRates } from "./rates-configs";
 import {
     calculateContributions,
     calculateGrossSalary,
@@ -8,6 +8,8 @@ import {
     calculateTax,
     getTotalContributionRate,
 } from "./salary";
+
+const RATES = getRates();
 
 describe("getTotalContributionRate", () => {
     it("should sum all employee contribution rates correctly", () => {
@@ -152,7 +154,7 @@ describe("calculateGrossSalary", () => {
 describe("calculateSalary", () => {
     it("should calculate net salary when type is gross", () => {
         const gross = 65000;
-        const result = calculateSalary({ type: "gross", amount: gross }, RATES);
+        const result = calculateSalary({ type: "gross", amount: gross });
         const expected = calculateNetSalary(gross, RATES);
 
         expect(result).toEqual(expected);
@@ -160,21 +162,21 @@ describe("calculateSalary", () => {
 
     it("should calculate gross salary when type is net", () => {
         const net = 50000;
-        const result = calculateSalary({ type: "net", amount: net }, RATES);
+        const result = calculateSalary({ type: "net", amount: net });
         const expected = calculateGrossSalary(net, RATES);
 
         expect(result).toEqual(expected);
     });
 
     it("should handle edge case: gross input of 0", () => {
-        const result = calculateSalary({ type: "gross", amount: 0 }, RATES);
+        const result = calculateSalary({ type: "gross", amount: 0 });
 
         expect(result.gross).toBe(0);
         expect(result.net).toBe(0);
     });
 
     it("should handle edge case: net input of 0", () => {
-        const result = calculateSalary({ type: "net", amount: 0 }, RATES);
+        const result = calculateSalary({ type: "net", amount: 0 });
 
         expect(result.net).toBeCloseTo(0, 5);
         expect(result.gross).toBeCloseTo(0, 5);

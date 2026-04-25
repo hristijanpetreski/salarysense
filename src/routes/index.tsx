@@ -1,55 +1,61 @@
 import { Title } from "@solidjs/meta";
 import { createMemo, createSignal } from "solid-js";
+import { formatMkd } from "~/lib/formatters";
 import { calculateSalary, finalizeSalary } from "~/lib/salary";
+import Input from "~/lib/ui/input";
+import {
+    SegmentedButton,
+    SegmentedButtonGroup,
+} from "~/lib/ui/segmented-button";
+
+type SalaryMode = "gross" | "net";
 
 export default function Home() {
-    const [mode, setMode] = createSignal<"gross" | "net">("gross");
-    const [amount, setAmount] = createSignal<number>(0);
+    const [mode, setMode] = createSignal<SalaryMode>("gross");
+    const [amount, setAmount] = createSignal<string>("");
 
     const salary = createMemo(() => {
-        const rawSalary = calculateSalary({ type: mode(), amount: amount() });
+        const rawSalary = calculateSalary({
+            type: mode(),
+            amount: Number(amount()),
+        });
         return finalizeSalary(rawSalary);
     });
 
     return (
-        <main class="grid place-content-center h-full bg-surface text-on-surface">
+        <main class="h-full bg-surface text-on-surface">
             <Title>SalarySense</Title>
-            <section>
-                <div class="flex">
-                    <button
-                        type="button"
-                        class="px-4 py-2 border border-outline"
-                        onClick={() => setMode("gross")}
+            <section class="flex flex-col items-center">
+                <div>
+                    <SegmentedButtonGroup
+                        value={mode()}
+                        onChange={(e) => setMode(e as SalaryMode)}
                     >
-                        {mode() === "gross" && (
-                            <span class="mr-1">&check;</span>
-                        )}
-                        Gross
-                    </button>
-                    <button
-                        type="button"
-                        class="px-4 py-2 border border-t-outline -ml-px"
-                        onClick={() => setMode("net")}
-                    >
-                        {mode() === "net" && <span class="mr-1">&check;</span>}
-                        Net
-                    </button>
+                        <SegmentedButton value="gross">Gross</SegmentedButton>
+                        <SegmentedButton value="net">Net</SegmentedButton>
+                    </SegmentedButtonGroup>
                 </div>
 
-                <input
+                <Input
+                    label="Amount"
                     type="number"
+                    placeholder="Amount"
+                    supportingText={`Enter your ${mode()} salary`}
                     value={amount()}
-                    onChange={(e) => setAmount(Number(e.target.value))}
+                    onInput={(e) => setAmount(e.target.value)}
                 />
             </section>
 
             <br />
 
             <section>
-                <p>Your gross salary is: {salary().gross}</p>
-                <p>Your net salary is: {salary().net}</p>
-                <p>Total contributions: {salary().contributions.total}</p>
-                <p>Total tax: {salary().tax.incomeTax}</p>
+                <p>Your gross salary is: {formatMkd(salary().gross)}</p>
+                <p>Your net salary is: {formatMkd(salary().net)}</p>
+                <p>
+                    Total contributions:{" "}
+                    {formatMkd(salary().contributions.total)}
+                </p>
+                <p>Total tax: {formatMkd(salary().tax.incomeTax)}</p>
             </section>
 
             <br />
@@ -57,26 +63,29 @@ export default function Home() {
             <section>
                 <p>
                     Pension and disability:{" "}
-                    {salary().contributions.pensionAndDisability}
+                    {formatMkd(salary().contributions.pensionAndDisability)}
                 </p>
                 <p>
-                    Health insurance: {salary().contributions.healthInsurance}
+                    Health insurance:{" "}
+                    {formatMkd(salary().contributions.healthInsurance)}
                 </p>
                 <p>
                     Unemployment insurance:{" "}
-                    {salary().contributions.unemploymentInsurance}
+                    {formatMkd(salary().contributions.unemploymentInsurance)}
                 </p>
                 <p>
                     Additional health insurance:{" "}
-                    {salary().contributions.additionalHealthInsurance}
+                    {formatMkd(
+                        salary().contributions.additionalHealthInsurance,
+                    )}
                 </p>
             </section>
 
             <br />
 
             <section>
-                <p>Taxable base: {salary().tax.taxableBase}</p>
-                <p>Incom tax: {salary().tax.incomeTax}</p>
+                <p>Taxable base: {formatMkd(salary().tax.taxableBase)}</p>
+                <p>Incom tax: {formatMkd(salary().tax.incomeTax)}</p>
             </section>
         </main>
     );

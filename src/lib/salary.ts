@@ -1,15 +1,5 @@
-import { RATES } from "./constants";
-
-type Rates = {
-    contributions: {
-        pensionAndDisability: number;
-        healthInsurance: number;
-        additionalHealthInsurance: number;
-        unemploymentInsurance: number;
-    };
-    tax: number;
-    allowance: number;
-};
+import { getRates } from "./rates-configs";
+import type { RatesConfig } from "./rates-configs/types";
 
 export function roundMoney(value: number, decimals: number = 0): number {
     const factor = 10 ** decimals;
@@ -24,7 +14,7 @@ export function roundMoney(value: number, decimals: number = 0): number {
  * other calculations to derive gross/net conversions and thresholds. The
  * returned value is a decimal (no rounding is performed).
  *
- * @param {Rates} rates - Rates object containing a `contributions` property with:
+ * @param {RatesConfig} rates - Rates object containing a `contributions` property with:
  *   - pensionAndDisability: number
  *   - healthInsurance: number
  *   - unemploymentInsurance: number
@@ -32,7 +22,7 @@ export function roundMoney(value: number, decimals: number = 0): number {
  * @returns {number} Sum of the employee contribution rates (decimal). For example, 0.25 represents 25%.
  */
 
-export function getTotalContributionRate(rates: Rates): number {
+export function getTotalContributionRate(rates: RatesConfig): number {
     const {
         pensionAndDisability,
         healthInsurance,
@@ -80,7 +70,7 @@ type ContributionsBreakdown = {
  */
 export function calculateContributions(
     gross: number,
-    rates: Rates,
+    rates: RatesConfig,
 ): ContributionsBreakdown {
     const {
         pensionAndDisability,
@@ -126,7 +116,7 @@ export type TaxBreakdown = {
  */
 export function calculateTax(
     grossAfterContributions: number,
-    rates: Rates,
+    rates: RatesConfig,
 ): TaxBreakdown {
     const { tax, allowance } = rates;
 
@@ -162,7 +152,7 @@ export type SalaryBreakdown = {
  */
 export function calculateNetSalary(
     gross: number,
-    rates: Rates,
+    rates: RatesConfig,
 ): SalaryBreakdown {
     const contributions = calculateContributions(gross, rates);
     const grossAfterContributions = gross - contributions.total;
@@ -204,7 +194,7 @@ export function calculateNetSalary(
 
 export function calculateGrossSalary(
     net: number,
-    rates: Rates,
+    rates: RatesConfig,
 ): SalaryBreakdown {
     const contributionRate = getTotalContributionRate(rates);
 
@@ -244,7 +234,7 @@ type SalaryInput =
  */
 export function calculateSalary(
     input: SalaryInput,
-    rates: Rates = RATES,
+    rates: RatesConfig = getRates(),
 ): SalaryBreakdown {
     if (input.type === "gross") {
         return calculateNetSalary(input.amount, rates);
