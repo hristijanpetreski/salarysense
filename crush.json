@@ -1,0 +1,17 @@
+{
+    "$schema": "https://charm.land/crush.json",
+    "options": {
+        "auto_lsp": true,
+        "skills_paths": ["./skills"],
+        "debug": false
+    },
+    "lsp": {
+        "typescript": {
+            "command": "typescript-language-server",
+            "args": ["--stdio"]
+        }
+    },
+    "permissions": {
+        "allowed_tools": ["view", "ls", "grep", "edit", "write", "fetch"]
+    }
+}

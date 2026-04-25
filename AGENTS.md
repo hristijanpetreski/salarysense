@@ -1,141 +1,121 @@
-# Developer Guidelines for Agentic Coding Agents
+# Agent Guidelines for SalarySense
 
-This document provides instructions and guidelines for agentic coding agents operating in the **SalarySense** repository.
+This document helps agentic coding assistants work effectively in the SalarySense repository by documenting observed commands, conventions, architecture, and non-obvious gotchas. Only facts observed in the repository are included.
 
-## Project Overview
-SalarySense is a modern web application built with **SolidJS** and **SolidStart**, using **Vinxi** as the underlying toolkit.
+## Project overview
 
-## 1. Commands
+- Modern web application built with SolidJS and SolidStart (file-based routing).
+- Vinxi is used as the project scaffolding / adapter (package scripts call `vinxi`).
+- Tailwind CSS is used for styling (vite plugin configured in `app.config.ts`).
 
-### Environment
-- **Runtime**: **Bun** is used as the primary runtime and package manager.
-- **Package Manager**: Use `bun`.
+## Essential commands
 
-### Core Commands
-- **Dev Server**: `bun run dev` (runs `vinxi dev`)
-- **Build**: `bun run build` (runs `vinxi build`)
-- **Start**: `bun run start` (runs `vinxi start` - for production preview)
-- **Version**: `bun run version` (runs `vinxi version`)
+Commands are defined in package.json. The project expects Bun to be used as the runtime/package manager in normal development but the scripts are plain npm-style scripts and can be run with Bun or Node tooling that runs package.json scripts.
 
-### Quality Control (Linting & Formatting)
-We use **Biome** for all linting, formatting, and import organization.
-- **Check (Lint + Format)**: `bun x @biomejs/biome check .`
-- **Fix (Lint + Format + Fix)**: `bun x @biomejs/biome check --write .`
-- **Format Only**: `bun x @biomejs/biome format --write .`
-- **Organize Imports**: `bun x @biomejs/biome check --write --rule=source.organizeImports .`
+- Dev server: `bun run dev` (runs `vinxi dev`)
+- Build: `bun run build` (runs `vinxi build`)
+- Start (preview): `bun run start` (runs `vinxi start`)
+- Version info: `bun run version` (runs `vinxi version`)
+- Run tests: `bun run test` (script runs `vitest run`)
+- Run vitest directly: `bun x vitest run` or `bun x vitest` (watch)
+- Vitest UI: `bun run test-ui` (script uses `vitest --ui`)
 
-### Testing
-- **Framework**: **Vitest** is the planned testing framework.
-- **Run All Tests**: `bun run test` (once configured).
-- **Run Single Test**: `bun x vitest run path/to/file.test.ts`.
-- **Watch Mode**: `bun x vitest`.
+Quality / formatting (Biome):
+- Check (lint + format): `bun x @biomejs/biome check .`
+- Fix (lint + format + write): `bun x @biomejs/biome check --write .`
+- Format only: `bun x @biomejs/biome format --write .`
+- Organize imports (Biomes assist config also enables automatic organization in some editors):
+  `bun x @biomejs/biome check --write --rule=source.organizeImports .`
+
+Notes:
+- package.json lists `engines.node` >= 22, the repository was set up to be used with Bun in the developer notes.
+
+## Project layout and architecture
+
+- src/
+  - components/ — reusable UI components (Solid components)
+  - routes/ — SolidStart routes (file-based routing). Examples: `src/routes/index.tsx`, `src/routes/demo.tsx`, `[...404].tsx`.
+  - lib/ — utilities and shared code (example: salary calculations in `src/lib/salary.ts`, UI primitives in `src/lib/ui/`).
+  - entry-client.tsx, entry-server.tsx, app.tsx — app entry points / root layout used by SolidStart.
+- public/ — static assets (icons, manifest)
+- app.config.ts — SolidStart/Vite config (shows tailwindcss plugin)
+- biome.json — Biome configuration for formatting and linting
+- tsconfig.json — TypeScript config; note path alias `~/*` → `./src/*`
+
+Control/data flow (high level):
+- Business logic (salary calculations) lives in `src/lib/salary.ts` and is imported by routes/pages (e.g., `src/routes/index.tsx`).
+- UI components live under `src/lib/ui` and are used by pages. Pages call pure functions in `lib` and present results.
+
+## Code style and conventions (observed)
+
+- Biome is the formatter/linter. The Biome config sets:
+  - formatter indentStyle: "space" and indentWidth: 4 (use 4 spaces for indentation).
+  - JavaScript quoteStyle: "double" (use double quotes where possible).
+  - Linter recommended rules are enabled.
+  - Assist organizes imports (`assist.actions.source.organizeImports: on`).
+- TypeScript settings (tsconfig.json):
+  - `strict: true` and `noEmit: true`.
+  - JSX is preserved with `jsxImportSource: "solid-js"`.
+  - Path alias `~/*` maps to `./src/*` — use this alias in imports (observed throughout code).
+- Use SolidJS idioms:
+  - `createSignal`, `createMemo`, and SolidJS reactive primitives for component state.
+  - Components are functional Solid components.
+- Tailwind usage: utility classes appear in `class` attributes (not `className`) consistent with SolidJS.
+
+Important correction (non-obvious and critical):
+- The repository's Biome configuration uses spaces (4) for indentation. Do NOT use tabs. The previous AGENTS.md entry claiming "tabs" is incorrect — follow `biome.json`.
+
+## Testing
+
+- Vitest is used for unit tests (`vitest` present in devDependencies). A test file exists at `src/lib/salary.test.ts` covering the salary logic.
+- Run tests via `bun run test` (runs the `test` script) or run vitest directly with `bun x vitest`.
+- Tests use typical Vitest APIs (`describe`, `it`, `expect`). Look at `src/lib/salary.test.ts` as the canonical example for test style and coverage expectations.
+
+## Notable files and entry points
+
+- `src/routes/index.tsx` — main page using `calculateSalary` and UI components.
+  - Demonstrates usage of `calculateSalary`, `finalizeSalary`, and UI components like `SegmentedButtonGroup` and `Input`.
+- `src/lib/salary.ts` — core domain logic for salary calculations. Pure functions, well-tested.
+- `src/lib/constants.ts` — rates used by calculations (exported as `RATES` readonly constant).
+- `app.config.ts` — contains Vite plugin configuration (tailwindcss), useful when modifying build config.
+
+## Gotchas and non-obvious patterns
+
+- Path alias: imports frequently use `~/...` (see `tsconfig.json`), so editors and build tooling must respect the alias. When running TypeScript checks or other tools directly, ensure they load `tsconfig.json` so the alias resolves.
+- Formatting + imports: Biome is configured to auto-organize imports in assist mode. Edits may change import order/format automatically when running Biome checks.
+- Indentation: follow `biome.json` (4 spaces). Many editors default to tabs — configure the editor or run Biome format to avoid needless diffs.
+- Tailwind plugin: `app.config.ts` registers `@tailwindcss/vite` plugin for Vite — if you modify PostCSS/Vite config, keep this in mind.
+- Tests already exist for salary logic. When modifying `salary.ts`, update/add tests in `src/lib/salary.test.ts` and run `bun run test`.
+
+## How to approach common agent tasks
+
+- Small code change / bug fix in `src/lib`:
+  1. Run tests (`bun run test`) to reproduce failing behavior (or run relevant test file).
+  2. Edit code, keeping Biome style in mind (4-space indent, double quotes).
+  3. Run `bun x @biomejs/biome check --write .` to apply formatting and organize imports.
+  4. Run tests again.
+
+- Adding a new route/page:
+  - Add a file under `src/routes/` (file-based routing). Use SolidStart patterns as seen in `src/routes/index.tsx`.
+  - Use `~/` imports for local code.
+  - Add tests if logic is non-trivial.
+
+- Modifying build config:
+  - `app.config.ts` is the canonical place for Vite/SolidStart config. The project uses the Tailwind Vite plugin here; preserve it unless intentionally changing CSS build.
+
+## What is NOT included
+
+- No CI configs, deploy scripts, or environment variable conventions were found besides standard `.env` guidance — do not assume CI details.
+- Do not assume the presence of additional linters/formatters beyond Biome unless you find them in the repository.
+
+## Quick references
+
+- Path alias: `~/*` → `./src/*` (tsconfig.json)
+- Primary test file to study: `src/lib/salary.test.ts`
+- Core business logic: `src/lib/salary.ts`
+- Formatting config: `biome.json` (4 spaces, double quotes)
+- SolidStart/Vite config: `app.config.ts`
 
 ---
 
-## 2. Project Structure
-
-- `src/`: Core source code.
-  - `components/`: Reusable UI components.
-  - `routes/`: File-based routing (SolidStart).
-  - `app.tsx`: Main application entry and root layout.
-  - `app.css`: Global styles including Tailwind directives.
-  - `entry-client.tsx`: Client-side entry point.
-  - `entry-server.tsx`: Server-side entry point.
-- `public/`: Static assets (images, icons, etc.).
-- `app.config.ts`: Vinxi/SolidStart configuration.
-- `biome.json`: Linting and formatting rules.
-- `tsconfig.json`: TypeScript configuration with path aliases.
-- `package.json`: Dependencies and scripts.
-
----
-
-## 3. Code Style & Guidelines
-
-### Formatting & Linting
-- **Indentation**: Use **tabs** as specified in `biome.json`.
-- **Quotes**: Use **double quotes** for strings.
-- **Semicolons**: Always include semicolons.
-- **Import Sorting**: Biome handles this automatically. Run `bun x @biomejs/biome check --write .` after modifying imports.
-
-### Component Structure
-- Use **Functional Components** with SolidJS signals for state.
-- Prefer **Named Exports** for utility functions and **Default Exports** for page/route components.
-- Components should be modular and kept in `src/components/`.
-- Routes/Pages are in `src/routes/`.
-
-### State Management
-- Use `createSignal` for local component state.
-- Use `createStore` for complex nested state.
-- Avoid unnecessary prop drilling; use Solid's Context API if state needs to be shared deeply.
-
-### Styling
-- **Tailwind CSS**: Primary styling method. Use utility classes in `class` (not `className`).
-- **Global CSS**: Located in `src/app.css`.
-- **Component-Specific CSS**: If needed, create a `.css` file next to the component and import it.
-
-### TypeScript Usage
-- **Strict Mode**: `strict: true` is enabled in `tsconfig.json`.
-- Use explicit types for function parameters and return values when not obvious.
-- Avoid `any`. Prefer `unknown` or specific interfaces.
-- Use `~/*` absolute path mappings for imports from `src/`.
-
-### Naming Conventions
-- **Components**: `PascalCase` (e.g., `SalaryCalculator.tsx`).
-- **Files/Folders**: `kebab-case` for general files/folders, but match component name for component files.
-- **Variables/Functions**: `camelCase`.
-- **Constants**: `SCREAMING_SNAKE_CASE`.
-
-### Error Handling
-- Use `try/catch` blocks for asynchronous operations (API calls).
-- For UI error boundaries, use SolidJS `<ErrorBoundary>`.
-- Use `Suspense` for data fetching states.
-- Log errors to a centralized logging service if one is eventually implemented; for now, use `console.error` with descriptive context.
-
-### Data Fetching
-- Use Solid's `createResource` for fetching data from external APIs.
-- Prefer server-side data fetching in loaders (if using SolidStart's `cache` and `createAsync`) to reduce client-side overhead.
-- Ensure all resources are wrapped in `<Suspense>` to provide a consistent loading experience.
-
-### Accessibility (A11y)
-- Use semantic HTML tags whenever possible (e.g., `<main>`, `<nav>`, `<article>`, `<button>` instead of `<div>`).
-- Always provide `aria-label` for buttons that only contain icons.
-- Ensure all form elements have associated labels.
-- Verify color contrast ratios meet WCAG AA standards.
-
-### Performance
-- Leverage SolidJS's fine-grained reactivity; avoid unnecessary signal reads in large loops.
-- Use `index` or `<For>` for lists to ensure efficient DOM updates.
-- Keep components small and focused on a single responsibility.
-- Optimize images by using modern formats (WebP/AVIF) and providing appropriate `srcset`.
-
-### Project Specific Patterns
-- **Routing**: File-based routing is handled by `@solidjs/start/router` in `src/routes/`.
-- **Server Actions**: If adding server-side logic, use SolidStart server functions (`"use server"`).
-- **Environment Variables**: Use `.env` files for configuration. Prefix client-side variables with `VITE_` if they need to be accessed in the browser.
-
----
-
-## 4. Development Workflow
-
-### Step-by-Step Implementation
-1.  **Analyze**: Understand the requirements and the existing codebase.
-2.  **Plan**: Draft a plan and share it with the user if the task is complex.
-3.  **Implement**: Write clean, typed, and formatted code.
-4.  **Verify**: Run the dev server to check changes and execute linting/formatting commands.
-5.  **Refine**: Address any feedback or issues discovered during verification.
-
-### Self-Correction
-- If a command fails, read the error message carefully and attempt to fix the root cause.
-- If you are unsure about a project pattern, search the codebase for similar implementations.
-
-## 5. Git Workflow & Collaboration
-- **Branching**: Use descriptive branch names like `feature/abc` or `fix/xyz`.
-- **Commits**: Follow [Conventional Commits](https://www.conventionalcommits.org/) (e.g., `feat: ...`, `fix: ...`).
-- **Pull Requests**: Provide a clear summary of changes and reference any related issues.
-- **Reviews**: Ensure all Biome checks pass before requesting a review.
-
-## 5. Cursor & Copilot Rules
-- Currently, no specific `.cursorrules` or `.github/copilot-instructions.md` are defined.
-- Follow the guidelines in this `AGENTS.md` file as the primary source of truth.
-- When generating code, prioritize readability and maintainability over clever one-liners.
-- If you find inconsistencies in the codebase, follow the established patterns even if they differ slightly from these guidelines, but consider bringing it to the developer's attention.
+If you need me to update or expand any section (examples, more gotchas, CI notes after you add them), say which area to expand and I will update AGENTS.md accordingly.
